@@ -1,5 +1,6 @@
 import os
 from typing import List
+import csv
 
 import pandas as pd
 import numpy as np
@@ -15,7 +16,9 @@ class ToggleFrame:
         
         # Computed attributes
         self.aggregated_descriptions = self._aggregate_descriptions()
-        pass
+        self.aggregated_months = self._aggregate_months()
+        
+        pprint(self.aggregated_months)
 
     def print_aggregated_descriptions(self):
         pprint(self.aggregated_descriptions)
@@ -51,5 +54,42 @@ class ToggleFrame:
             total_hours += sum_hours
         return round(total_hours, 2)
 
+    def _aggregate_months(self) -> dict:
+        month_keys = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+        ]
+        month_durations = {}
+        for i in range(1, 13):
+            if i < 10:
+                month_str = f"0{i}"
+            else:
+                month_str = f"{i}"
+            month_prefix = "2021-" + month_str
+            month_subframe = self.toggle_df[self.toggle_df["Start date"].str.contains(month_prefix)]
+            duration_strs = month_subframe["Duration"].to_numpy()
+            month_duration = self._sum_duration_strs(duration_strs)
+            month_durations[month_keys[i-1]] = month_duration
+        
+        return month_durations
+
     def _aggregate_tags(self) -> dict:
         pass
+
+    def write_month_aggregates_to_file(self):
+        output_path = os.path.join("data-output", "toggl_annual_aggregate_2021.csv")
+        with open(output_path, 'w') as csv_sink_file:
+            writer = csv.writer(csv_sink_file)
+            writer.writerow(["month","duration_hr"])
+            for month, duration in self.aggregated_months.items():
+                writer.writerow([month, duration])

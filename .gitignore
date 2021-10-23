@@ -9,6 +9,8 @@
 
 # Data
 data-cache/*
+data-output/*
+data-input/*
 
 # Node artifact files
 node_modules/
